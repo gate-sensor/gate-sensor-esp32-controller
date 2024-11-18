@@ -84,7 +84,7 @@ void door_task(void *arg)
                         ESP_LOGI(TAG, "Door opened.");
                         door_open = true;
                         publish_door_state("open");
-                        set_rgb_led_named_color("LED_SOLID_WHITE");
+                        set_rgb_led_named_color("LED_SOLID_RED");
 
                         // Start the door open timer
                         if (xTimerStart(door_open_timer, 0) != pdPASS)
@@ -98,7 +98,7 @@ void door_task(void *arg)
                         ESP_LOGI(TAG, "Door closed.");
                         door_open = false;
                         publish_door_state("closed");
-                        set_rgb_led_named_color("LED_OFF");
+                        set_rgb_led_named_color("LED_SOLID_GREEN");
 
                         // Stop the door open timer
                         if (xTimerStop(door_open_timer, 0) != pdPASS)
@@ -153,7 +153,7 @@ void init_door_handler(void)
         ESP_LOGI(TAG, "Door is initially open.");
         door_open = true;
         publish_door_state("open");
-        set_rgb_led_named_color("LED_SOLID_WHITE");
+        set_rgb_led_named_color("LED_SOLID_RED");
 
         // Start the timer since the door is open
         if (xTimerStart(door_open_timer, 0) != pdPASS)
@@ -166,7 +166,7 @@ void init_door_handler(void)
         ESP_LOGI(TAG, "Door is initially closed.");
         door_open = false;
         publish_door_state("closed");
-        set_rgb_led_named_color("LED_OFF");
+        set_rgb_led_named_color("LED_SOLID_GREEN");
 
         // Ensure the timer is stopped
         if (xTimerStop(door_open_timer, 0) != pdPASS)

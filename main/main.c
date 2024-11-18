@@ -21,7 +21,7 @@
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 
-static const char *TAG = "MAILBOX";
+static const char *TAG = "PATIO_MAIN";
 
 void app_main(void)
 {
