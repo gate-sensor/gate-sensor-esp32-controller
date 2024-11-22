@@ -5,7 +5,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-#include "freertos/timers.h" // Added this header
+#include "freertos/timers.h"
 #include "driver/gpio.h"
 #include "esp_timer.h"
 #include "esp_log.h"
@@ -20,7 +20,22 @@ static QueueHandle_t gpio_evt_queue = NULL;
 static bool door_open = false;
 static TimerHandle_t door_open_timer = NULL;
 
-void publish_door_state(char *state)
+// Define LED colors in one place
+typedef struct
+{
+    const char *solid;
+    const char *blinking;
+} LedColorConfig;
+
+static const LedColorConfig DOOR_LED_COLORS = {
+    .solid = "LED_SOLID_RED",
+    .blinking = "LED_BLINK_RED"};
+
+static const LedColorConfig CLOSED_LED_COLORS = {
+    .solid = "LED_SOLID_GREEN",
+    .blinking = "LED_BLINK_GREEN"};
+
+void publish_door_state(const char *state)
 {
     char payload[32];
     snprintf(payload, sizeof(payload), "{\"door\": \"%s\" }", state);
@@ -48,7 +63,7 @@ void door_open_timer_callback(TimerHandle_t xTimer)
     ESP_LOGI(TAG, "Door STILL open.");
     // The door is still open, send the message
     publish_door_state("open");
-    set_rgb_led_named_color("LED_BLINK_RED");
+    set_rgb_led_named_color(DOOR_LED_COLORS.blinking);
 }
 
 void IRAM_ATTR gpio_isr_handler(void *arg)
@@ -84,7 +99,7 @@ void door_task(void *arg)
                         ESP_LOGI(TAG, "Door opened.");
                         door_open = true;
                         publish_door_state("open");
-                        set_rgb_led_named_color("LED_SOLID_RED");
+                        set_rgb_led_named_color(DOOR_LED_COLORS.solid);
 
                         // Start the door open timer
                         if (xTimerStart(door_open_timer, 0) != pdPASS)
@@ -98,7 +113,7 @@ void door_task(void *arg)
                         ESP_LOGI(TAG, "Door closed.");
                         door_open = false;
                         publish_door_state("closed");
-                        set_rgb_led_named_color("LED_SOLID_GREEN");
+                        set_rgb_led_named_color(CLOSED_LED_COLORS.solid);
 
                         // Stop the door open timer
                         if (xTimerStop(door_open_timer, 0) != pdPASS)
@@ -153,7 +168,7 @@ void init_door_handler(void)
         ESP_LOGI(TAG, "Door is initially open.");
         door_open = true;
         publish_door_state("open");
-        set_rgb_led_named_color("LED_SOLID_RED");
+        set_rgb_led_named_color(DOOR_LED_COLORS.solid);
 
         // Start the timer since the door is open
         if (xTimerStart(door_open_timer, 0) != pdPASS)
@@ -166,7 +181,7 @@ void init_door_handler(void)
         ESP_LOGI(TAG, "Door is initially closed.");
         door_open = false;
         publish_door_state("closed");
-        set_rgb_led_named_color("LED_SOLID_GREEN");
+        set_rgb_led_named_color(CLOSED_LED_COLORS.solid);
 
         // Ensure the timer is stopped
         if (xTimerStop(door_open_timer, 0) != pdPASS)
